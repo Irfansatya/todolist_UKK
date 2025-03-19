@@ -1,37 +1,41 @@
 <?php
-$koneksi = mysqli_connect("localhost", "root", "", "ukk2025_todolist"); // koneksi database
+// Koneksi ke database MySQL
+$koneksi = mysqli_connect("localhost", "root", "", "ukk2025_todolist");
 
-// tambah task
+// Menambahkan task baru
 if (isset($_POST['add_task'])) {
-    $task = $_POST['task'];
-    $priority = $_POST['priority'];
-    $due_date = $_POST['due_date'];
+    $task = $_POST['task']; // Mengambil input nama task
+    $priority = $_POST['priority']; // Mengambil input prioritas task
+    $due_date = $_POST['due_date']; // Mengambil input tanggal task
 
+    // Cek apakah semua field terisi
     if (!empty($task) && !empty($priority) && !empty($due_date)) {
+        // Menyimpan data task ke dalam tabel "task" dengan status awal 0 (Belum Selesai)
         mysqli_query($koneksi, "INSERT INTO task VALUES ('', '$task', '$priority', '$due_date', '0')");
         echo "<script>alert('Task berhasil ditambahkan')</script>";
     } else {
         echo "<script>alert('Task gagal ditambahkan')</script>";
-        header("location: index.php");
+        header("location: index.php"); // Refresh halaman
     }
 }
 
-// task selesai
+// Menandai task sebagai selesai
 if (isset($_GET['complete'])) {
     $id = $_GET['complete'];
     mysqli_query($koneksi, "UPDATE task SET status = '1' WHERE id = '$id'");
     echo "<script>alert('Task berhasil diselesaikan')</script>";
-    header("location: index.php"); // halaman di refresh
+    header("location: index.php"); // Refresh halaman
 }
 
-// hapus task (baik yang selesai maupun belum)
+// Menghapus task dari database
 if (isset($_GET['delete'])) {
     $id = $_GET['delete'];
     mysqli_query($koneksi, "DELETE FROM task WHERE id = '$id'");
     echo "<script>alert('Task berhasil dihapus')</script>";
-    header("location: index.php"); // halaman di refresh
+    header("location: index.php"); // Refresh halaman
 }
 
+// Mengambil semua task dari database dan mengurutkan berdasarkan status, prioritas, dan tanggal
 $result = mysqli_query($koneksi, "SELECT * FROM task ORDER BY status ASC, priority DESC, due_date ASC");
 ?>
 
@@ -47,9 +51,12 @@ $result = mysqli_query($koneksi, "SELECT * FROM task ORDER BY status ASC, priori
   <body>
     <div class="container mt-2">
         <h2 class="text-center">Aplikasi To Do List</h2>
+        
+        <!-- Form untuk menambah task baru -->
         <form action="" method="post" class="border rounded bg-light p-2">
             <label class="form-label">Nama Task</label>
             <input type="text" name="task" class="form-control" placeholder="Masukan Task Baru" autocomplete="off" autofocus required>
+            
             <label class="form-label">Prioritas</label>
             <select name="priority" class="form-control" required>
                 <option value="">--Pilih Prioritas--</option>
@@ -57,12 +64,16 @@ $result = mysqli_query($koneksi, "SELECT * FROM task ORDER BY status ASC, priori
                 <option value="2">Medium</option>
                 <option value="3">High</option>
             </select>
+            
             <label class="form-label">Tanggal</label>
             <input type="date" name="due_date" class="form-control" value="<?php echo date('Y-m-d') ?>" required>
+            
             <button class="btn btn-primary w-100 mt-2" name="add_task">Tambah</button>
         </form>
         <br>
         <hr>
+        
+        <!-- Tabel daftar task -->
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -83,23 +94,27 @@ $result = mysqli_query($koneksi, "SELECT * FROM task ORDER BY status ASC, priori
                 <tr>
                     <td><?php echo $no++ ?></td>
                     <td><?php echo $row['task'] ?></td>
-                    <td><?php
-                    if ($row['priority'] == 1) {
-                        echo "Low";
-                    } elseif ($row['priority'] == 2) {
-                        echo "Medium";
-                    } else {
-                        echo "High";
-                    }
-                    ?></td>
+                    <td>
+                        <?php
+                        if ($row['priority'] == 1) {
+                            echo "Low";
+                        } elseif ($row['priority'] == 2) {
+                            echo "Medium";
+                        } else {
+                            echo "High";
+                        }
+                        ?>
+                    </td>
                     <td><?php echo $row['due_date']?></td>
-                    <td><?php
-                    if ($row['status'] == 0) {
-                        echo "<span style='color: red;'>Belum Selesai</span>";
-                    } else {
-                        echo "<span style='color: green;'>Selesai</span>";
-                    }
-                    ?></td>
+                    <td>
+                        <?php
+                        if ($row['status'] == 0) {
+                            echo "<span style='color: red;'>Belum Selesai</span>";
+                        } else {
+                            echo "<span style='color: green;'>Selesai</span>";
+                        }
+                        ?>
+                    </td>
                     <td>
                         <?php if ($row['status'] == 0) { ?>
                             <a href="?complete=<?php echo $row['id'] ?>" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Selesai</a>
